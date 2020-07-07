@@ -6,22 +6,13 @@ import (
 	"io"
 	"strings"
 
-	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/client-go/kubernetes/scheme"
 )
-
-// ConcatManifests joins the provided manifests (as byte arrays) into one single
-// manifest. This can be useful to only have one I/O operation with Kubernetes
-// down the line, when trying to apply these manifests.
-func ConcatManifests(manifests ...[]byte) []byte {
-	return bytes.Join(manifests, separator)
-}
-
-var separator = []byte("---\n")
 
 // NewRawExtensions decodes the provided manifest's bytes into "raw extension"
 // Kubernetes objects. These can then be passed to NewRawResource.
@@ -89,7 +80,7 @@ func AppendFlattened(components *metav1.List, component runtime.RawExtension) er
 	}
 	obj, err := runtime.Decode(scheme.Codecs.UniversalDeserializer(), component.Raw)
 	if err != nil {
-		return errors.Wrapf(err, "decoding object")
+		return fmt.Errorf("decoding object: %w", err)
 	}
 	return AppendFlattened(components, runtime.RawExtension{Object: obj})
 }
